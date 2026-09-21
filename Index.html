@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Work Out">
+<meta name="theme-color" content="#111111">
+
+<title>Work Out</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+background:#f4f4f6;
+color:#161616;
+font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
+}
+.app{
+max-width:520px;
+margin:auto;
+min-height:100vh;
+padding:calc(18px + env(safe-area-inset-top)) 16px 40px;
+}
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:16px;
+}
+.brand{
+font-size:15px;
+font-weight:900;
+letter-spacing:.08em;
+text-transform:uppercase;
+}
+.pill{
+background:#e5e5ea;
+border-radius:99px;
+padding:7px 11px;
+font-size:12px;
+font-weight:700;
+}
+.timer{
+background:#111;
+color:white;
+border-radius:22px;
+padding:16px;
+margin-bottom:14px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+}
+.timer-label{
+font-size:10px;
+font-weight:800;
+letter-spacing:.08em;
+opacity:.65;
+}
+.time{
+font-size:28px;
+font-weight:850;
+font-variant-numeric:tabular-nums;
+}
+.timer-buttons{
+display:flex;
+gap:5px;
+}
+.timer-buttons button{
+border:0;
+border-radius:10px;
+padding:9px 10px;
+font-weight:750;
+}
+.card{
+background:white;
+border-radius:26px;
+padding:24px 20px;
+box-shadow:0 8px 30px rgba(0,0,0,.07);
+}
+.day{
+font-size:13px;
+font-weight:850;
+text-transform:uppercase;
+letter-spacing:.05em;
+color:#666;
+}
+.progress{
+height:7px;
+background:#e9e9ed;
+border-radius:10px;
+margin:14px 0 24px;
+overflow:hidden;
+}
+.bar{
+height:100%;
+background:#111;
+border-radius:10px;
+}
+.count{
+font-size:13px;
+color:#777;
+margin-bottom:5px;
+}
+.name{
+font-size:28px;
+line-height:1.08;
+font-weight:850;
+margin:0 0 7px;
+}
+.target{
+font-size:17px;
+color:#666;
+margin-bottom:24px;
+}
+.labels,.set{
+display:grid;
+grid-template-columns:52px 1fr 1fr 44px;
+gap:7px;
+align-items:center;
+}
+.labels{
+font-size:10px;
+color:#888;
+text-align:center;
+margin-bottom:4px;
+}
+.set{margin:10px 0}
+.set b{font-size:13px}
+input{
+width:100%;
+border:1px solid #ddd;
+border-radius:12px;
+padding:13px 7px;
+font-size:16px;
+text-align:center;
+background:#fafafa;
+}
+.check{
+height:42px;
+width:42px;
+border-radius:12px;
+border:1px solid #ccc;
+background:white;
+font-size:20px;
+}
+.check.done{
+background:#111;
+color:#fff;
+border-color:#111;
+}
+.nav{
+display:grid;
+grid-template-columns:1fr 1.4fr;
+gap:9px;
+margin-top:23px;
+}
+button{
+cursor:pointer;
+}
+.prev,.next,.finish{
+border:0;
+border-radius:15px;
+padding:15px;
+font-size:15px;
+font-weight:800;
+}
+.prev{background:#e5e5ea}
+.next,.finish{
+background:#111;
+color:#fff;
+}
+.days{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:6px;
+margin-top:14px;
+}
+.days button{
+border:0;
+border-radius:12px;
+padding:11px 2px;
+background:#e5e5ea;
+font-size:12px;
+font-weight:800;
+}
+.days button.active{
+background:#111;
+color:white;
+}
+.note{
+font-size:11px;
+color:#888;
+text-align:center;
+margin-top:14px;
+}
+.summary{text-align:center}
+.summary h2{
+font-size:29px;
+margin:10px 0;
+}
+.prbox{
+margin-top:23px;
+border-top:1px solid #eee;
+padding-top:20px;
+}
+.prbox h3{margin:0 0 12px}
+.prrow{
+display:grid;
+grid-template-columns:1.3fr .8fr .7fr;
+gap:6px;
+margin-bottom:10px;
+}
+.prlist{
+text-align:left;
+font-size:13px;
+margin-top:20px;
+}
+.pritem{
+padding:10px 0;
+border-bottom:1px solid #eee;
+}
+.reset{
+border:0;
+background:none;
+text-decoration:underline;
+color:#777;
+margin-top:18px;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="top">
+<div class="brand">Work Out</div>
+<div class="pill" id="weekly">0/5 days complete</div>
+</div>
+
+<div class="timer">
+<div>
+<div class="timer-label">WORKOUT TIME</div>
+<div class="time" id="clock">00:00:00</div>
+</div>
+
+<div class="timer-buttons">
+<button onclick="timerStart()">Start</button>
+<button onclick="timerPause()">Pause</button>
+<button onclick="timerReset()">Reset</button>
+</div>
+</div>
+
+<div id="main"></div>
+<div class="days" id="days"></div>
+
+<div class="note">
+Weights, reps and PRs save on this device.
+</div>
+
+</div>
+
+<script>
+const plan=[
+{
+day:"Day 1 · Chest + Triceps",
+exercises:[
+["Incline Dumbbell Press","3 × 8–12"],
+["Machine or Dumbbell Chest Press","3 × 10–12"],
+["Cable Chest Fly","3 × 10–15"],
+["Rope Tricep Pushdown","3 × 10–15"],
+["Overhead Tricep Extension","3 × 10–15"],
+["Low-to-High Cable Fly","3 × 10–15"],
+["Single-Arm Cable Tricep Extension","3 × 10–15 / arm"],
+["Assisted Dip or Bench Dip","3 × 8–12"]
+]},
+{
+day:"Day 2 · Back + Biceps",
+exercises:[
+["Lat Pulldown","3 × 8–12"],
+["Seated Cable Row","3 × 10–12"],
+["Chest-Supported High Row","3 × 10–12"],
+["Incline Hammer Curl","3 × 10–12"],
+["Cable or Preacher Curl","3 × 10–15"],
+["Straight-Arm Cable Pulldown","3 × 10–15"],
+["Single-Arm Lat Pulldown","3 × 10–12 / arm"],
+["Bayesian Cable Curl","3 × 10–15 / arm"]
+]},
+{
+day:"Day 3 · Legs",
+exercises:[
+["Hack Squat","3 × 8–12"],
+["Leg Press","3 × 10–12"],
+["Romanian Deadlift","3 × 8–12"],
+["Leg Extension","3 × 10–15"],
+["Seated or Lying Leg Curl","3 × 10–15"],
+["Hip Abduction Machine","3 × 12–15"],
+["Reverse Lunge","3 × 8–12 / leg"],
+["Cable Pull-Through","3 × 10–15"]
+]},
+{
+day:"Day 4 · Shoulders + Core",
+exercises:[
+["Seated Shoulder Press","3 × 8–12"],
+["Lateral Raise","3 × 12–15"],
+["Reverse Fly","3 × 12–15"],
+["Pallof Press","3 × 10–12 / side"],
+["Dead Bug","3 × 8–10 / side"],
+["Single-Arm Cable Lateral Raise","3 × 10–15 / arm"],
+["Face Pull","3 × 12–15"],
+["Bird Dog","3 × 8–10 / side"]
+]},
+{
+day:"Day 5 · Glutes + Full Body",
+exercises:[
+["Hip Thrust","3 × 8–12"],
+["Bulgarian Split Squat","3 × 8–12 / leg"],
+["Cable Glute Kickback","3 × 12–15 / leg"],
+["Single-Arm Cable Row","3 × 10–12 / side"],
+["Dumbbell Chest Press","3 × 10–12"],
+["Face Pull","3 × 12–15"],
+["Step-Up","3 × 10–12 / leg"],
+["Goblet Squat","3 × 10–15"]
+]}
+];
+
+let d=Number(localStorage.getItem("day")||0);
+let e=Number(localStorage.getItem("exercise")||0);
+let log=JSON.parse(localStorage.getItem("workoutLog")||"{}");
+let prs=JSON.parse(localStorage.getItem("workoutPRs")||"[]");
+
+let seconds=Number(localStorage.getItem("timer")||0);
+let running=false;
+let timerID;
+
+function key(){return d+"-"+e}
+
+function ensure(){
+if(!log[key()]){
+log[key()]={sets:[
+{w:"",r:"",done:false},
+{w:"",r:"",done:false},
+{w:"",r:"",done:false}
+]};
+}
+}
+
+function save(){
+localStorage.setItem("workoutLog",JSON.stringify(log));
+localStorage.setItem("day",d);
+localStorage.setItem("exercise",e);
+}
+
+function completeDay(di){
+return plan[di].exercises.every((x,ei)=>{
+let a=log[di+"-"+ei];
+return a&&a.sets.every(s=>s.done);
+});
+}
+
+function updateWeekly(){
+document.getElementById("weekly").textContent=
+plan.filter((x,i)=>completeDay(i)).length+"/5 days complete";
+}
+
+function renderDays(){
+let el=document.getElementById("days");
+el.innerHTML="";
+
+plan.forEach((x,i)=>{
+let b=document.createElement("button");
+b.innerHTML="D"+(i+1)+(completeDay(i)?" ✓":"");
+b.className=i===d?"active":"";
+
+b.onclick=()=>{
+d=i;
+e=0;
+save();
+render();
+};
+
+el.appendChild(b);
+});
+}
+
+function updateSet(i,type,value){
+ensure();
+log[key()].sets[i][type]=value;
+save();
+}
+
+function toggle(i){
+ensure();
+log[key()].sets[i].done=!log[key()].sets[i].done;
+save();
+render();
+}
+
+function render(){
+ensure();
+updateWeekly();
+renderDays();
+
+let exercise=plan[d].exercises[e];
+let data=log[key()];
+
+let sets=data.sets.map((s,i)=>`
+<div class="set">
+<b>Set ${i+1}</b>
+
+<input
+inputmode="decimal"
+placeholder="lb"
+value="${s.w}"
+oninput="updateSet(${i},'w',this.value)"
+>
+
+<input
+inputmode="numeric"
+placeholder="reps"
+value="${s.r}"
+oninput="updateSet(${i},'r',this.value)"
+>
+
+<button
+class="check ${s.done?'done':''}"
+onclick="toggle(${i})">
+${s.done?'✓':'○'}
+</button>
+</div>
+`).join("");
+
+document.getElementById("main").innerHTML=`
+<div class="card">
+
+<div class="day">${plan[d].day}</div>
+
+<div class="progress">
+<div class="bar"
+style="width:${((e+1)/plan[d].exercises.length)*100}%">
+</div>
+</div>
+
+<div class="count">
+Exercise ${e+1} of ${plan[d].exercises.length}
+</div>
+
+<h1 class="name">${exercise[0]}</h1>
+<div class="target">${exercise[1]}</div>
+
+<div class="labels">
+<span></span>
+<span>WEIGHT</span>
+<span>REPS</span>
+<span>DONE</span>
+</div>
+
+${sets}
+
+<div class="nav">
+<button class="prev" onclick="previous()">← Previous</button>
+
+<button class="next" onclick="next()">
+${e===plan[d].exercises.length-1?"Finish Day":"Next →"}
+</button>
+</div>
+
+</div>
+`;
+}
+
+function previous(){
+if(e>0){
+e--;
+}else if(d>0){
+d--;
+e=plan[d].exercises.length-1;
+}
+save();
+render();
+}
+
+function next(){
+if(e<plan[d].exercises.length-1){
+e++;
+save();
+render();
+}else{
+finish();
+}
+}
+
+function formatTime(s){
+let h=Math.floor(s/3600);
+let m=Math.floor((s%3600)/60);
+let sec=s%60;
+
+return [h,m,sec]
+.map(v=>String(v).padStart(2,"0"))
+.join(":");
+}
+
+function paintClock(){
+document.getElementById("clock").textContent=formatTime(seconds);
+}
+
+function timerStart(){
+if(running)return;
+
+running=true;
+
+timerID=setInterval(()=>{
+seconds++;
+localStorage.setItem("timer",seconds);
+paintClock();
+},1000);
+}
+
+function timerPause(){
+running=false;
+clearInterval(timerID);
+}
+
+function timerReset(){
+timerPause();
+seconds=0;
+localStorage.setItem("timer",0);
+paintClock();
+}
+
+function prHTML(){
+if(!prs.length){
+return '<div style="color:#888">No PRs logged yet.</div>';
+}
+
+return prs.slice(0,10).map(p=>`
+<div class="pritem">
+<b>${p.exercise}</b><br>
+${p.weight} lb${p.reps?" × "+p.reps+" reps":""}
+<span style="color:#888"> · ${p.date}</span>
+</div>
+`).join("");
+}
+
+function addPR(){
+let exercise=document.getElementById("prExercise").value.trim();
+let weight=document.getElementById("prWeight").value.trim();
+let reps=document.getElementById("prReps").value.trim();
+
+if(!exercise||!weight)return;
+
+prs.unshift({
+exercise,
+weight,
+reps,
+date:new Date().toLocaleDateString()
+});
+
+localStorage.setItem("workoutPRs",JSON.stringify(prs));
+finish();
+}
+
+function finish(){
+timerPause();
+save();
+updateWeekly();
+renderDays();
+
+document.getElementById("main").innerHTML=`
+<div class="card summary">
+
+<div class="day">${plan[d].day}</div>
+
+<h2>Workout Complete 💪</h2>
+
+<p><b>Workout time: ${formatTime(seconds)}</b></p>
+
+<p>
+${completeDay(d)
+?"Every set is checked off."
+:"You reached the end. Some sets are still unchecked."}
+</p>
+
+<div class="prbox">
+
+<h3>Hit a PR? 🏆</h3>
+
+<div class="prrow">
+<input id="prExercise" placeholder="Exercise">
+<input id="prWeight" inputmode="decimal" placeholder="Weight">
+<input id="prReps" inputmode="numeric" placeholder="Reps">
+</div>
+
+<button class="finish" onclick="addPR()">
+Save PR
+</button>
+
+<div class="prlist">
+<h3>Recent PRs</h3>
+${prHTML()}
+</div>
+
+</div>
+
+<button
+class="finish"
+style="margin-top:22px"
+onclick="nextDay()">
+
+${d<4?"Go to Day "+(d+2):"Back to Day 1"} →
+
+</button>
+
+<br>
+
+<button class="reset" onclick="resetDay()">
+Clear this day's workout
+</button>
+
+</div>
+`;
+}
+
+function nextDay(){
+d=d<4?d+1:0;
+e=0;
+timerReset();
+save();
+render();
+}
+
+function resetDay(){
+if(confirm("Clear all weights, reps and checkmarks for this day?")){
+plan[d].exercises.forEach((x,i)=>{
+delete log[d+"-"+i];
+});
+
+e=0;
+save();
+render();
+}
+}
+
+render();
+paintClock();
+</script>
+
+</body>
+</html>
